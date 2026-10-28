@@ -1,0 +1,25 @@
+# Original dataset, personal data and generated artifacts stay outside Git.
+*.csv
+*.parquet
+*.db
+*.sqlite*
+*.log
+data/
+artifacts/
+outputs/
+logs/
+models/
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+!*.example
+!tests/fixtures/*.csv
+
+
+submission/
+tmp/
+
+# Generated documents stay outside the source ZIP.
+output/
+MANIFEST_SHA256.json

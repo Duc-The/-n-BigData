@@ -1,0 +1,15 @@
+services:
+  spark-worker-1:
+    mem_limit: 1500m
+    environment:
+      SPARK_WORKER_CORES: "1"
+      SPARK_WORKER_MEMORY: 1g
+  spark-worker-2:
+    mem_limit: 1500m
+    environment:
+      SPARK_WORKER_CORES: "1"
+      SPARK_WORKER_MEMORY: 1g
+  spark-client:
+    mem_limit: 2200m
+  airflow-scheduler:
+    mem_limit: 2200m

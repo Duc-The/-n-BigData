@@ -1,0 +1,9 @@
+{
+  "delivery": {"label": "Vận chuyển", "pattern": "giao hàng|giao lâu|giao chậm|giao trễ|giao thiếu|giao sai|vận chuyển|shipper|shipping|ship hàng|phí ship|người giao|chờ hàng|nhận hàng|đơn vị giao"},
+  "product": {"label": "Sản phẩm", "pattern": "chất lượng|hàng giả|hàng nhái|hàng lỗi|hàng kém|hàng tốt|hàng hóa|sản phẩm|đóng gói|khác mô tả|người bán|shop lừa|hàng dỏm|hàng dởm"},
+  "support": {"label": "Chăm sóc khách hàng", "pattern": "chăm sóc|cskh|tổng đài|hỗ trợ|tư vấn|khiếu nại|nhân viên|phản hồi|hotline|chăm sóc khách"},
+  "app": {"label": "Ứng dụng", "pattern": "ứng dụng|\\bapp\\b|đăng nhập|đăng ký|giao diện|cập nhật|bị lỗi|lỗi app|\\blag\\b|\\bcrash\\b|treo máy|không vào|ko vào|không mở|không tải|tìm kiếm|\\bgiật\\b|\\bđơ\\b"},
+  "payment": {"label": "Thanh toán", "pattern": "thanh toán|trừ tiền|thẻ tín dụng|thẻ ngân hàng|ví điện tử|airpay|shopeepay|\\bmomo\\b|zalopay|chuyển khoản|\\bcod\\b"},
+  "promotion": {"label": "Giá và khuyến mãi", "pattern": "giảm giá|khuyến mãi|khuyến mại|voucher|mã giảm|mã freeship|giá cao|giá đắt|giá rẻ|tăng giá|sale|miễn phí vận chuyển"},
+  "returns": {"label": "Đổi trả và hoàn tiền", "pattern": "hoàn tiền|hoàn trả|đổi trả|trả hàng|đổi hàng|hủy đơn|huỷ đơn|hoàn lại|refund"}
+}

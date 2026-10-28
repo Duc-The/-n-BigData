@@ -1,0 +1,4 @@
+numpy==1.26.4
+kafka-python==2.2.15
+
+google-play-scraper==1.2.7

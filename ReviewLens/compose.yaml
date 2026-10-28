@@ -1,0 +1,205 @@
+name: bigdata-ecommerce
+
+x-runtime: &runtime
+  restart: unless-stopped
+  image: bigdata-review-runtime:local
+  build:
+    context: .
+    dockerfile: infra/Dockerfile
+  volumes:
+    - .:/workspace:ro
+    - ./outputs:/exports
+    - ./vietnamese_ecommerce_review.csv:/input/reviews.csv:ro
+  init: false
+
+x-airflow: &airflow
+  image: bigdata-review-airflow:local
+  build:
+    context: .
+    dockerfile: infra/Dockerfile.airflow
+  profiles: [orchestration]
+  user: "50000:0"
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${POSTGRES_PASSWORD:?Run scripts/init_local_env.py}@postgres/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__PARALLELISM: "2"
+    AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG: "1"
+    AIRFLOW__WEBSERVER__WORKERS: "1"
+    AIRFLOW__WEBSERVER__WEB_SERVER_MASTER_TIMEOUT: "300"
+    AIRFLOW__WEBSERVER__WEB_SERVER_WORKER_TIMEOUT: "300"
+    AIRFLOW__SCHEDULER__PARSING_PROCESSES: "1"
+    AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY:?Run scripts/init_local_env.py}
+    AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:?Run scripts/init_local_env.py}
+    SPARK_LOCAL_IP: airflow-scheduler
+  volumes:
+    - ./dags:/opt/airflow/dags:ro
+    - .:/workspace:ro
+    - ./outputs:/exports
+    - ./vietnamese_ecommerce_review.csv:/input/reviews.csv:ro
+    - airflow_logs:/opt/airflow/logs
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  namenode:
+    <<: *runtime
+    command: namenode
+    volumes:
+      - namenode_data:/hadoop/name
+    ports: ["127.0.0.1:9870:9870"]
+    mem_limit: 1g
+    healthcheck:
+      test: [CMD-SHELL, "hdfs dfs -ls / >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+  datanode:
+    <<: *runtime
+    command: datanode
+    hostname: datanode
+    volumes:
+      - datanode_data:/hadoop/data
+    mem_limit: 1g
+    depends_on:
+      namenode:
+        condition: service_healthy
+  spark-master:
+    <<: *runtime
+    command: spark-master
+    hostname: spark-master
+    ports: ["127.0.0.1:8081:8080"]
+    mem_limit: 768m
+  spark-worker-1:
+    <<: *runtime
+    command: spark-worker
+    hostname: spark-worker-1
+    mem_limit: 3g
+    depends_on: [spark-master]
+  spark-worker-2:
+    <<: *runtime
+    command: spark-worker
+    hostname: spark-worker-2
+    mem_limit: 3g
+    depends_on: [spark-master]
+  spark-client:
+    <<: *runtime
+    command: [sleep, infinity]
+    hostname: spark-client
+    environment:
+      SPARK_LOCAL_IP: spark-client
+    ports: ["127.0.0.1:4040:4040"]
+    mem_limit: 3g
+    depends_on: [spark-master, datanode, spark-worker-1, spark-worker-2]
+  kafka:
+    restart: unless-stopped
+    image: apache/kafka:3.9.0
+    profiles: [streaming, orchestration]
+    hostname: kafka
+    ports: ["127.0.0.1:9092:9092"]
+    mem_limit: 1g
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:29093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx512m
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka_data:/tmp/kraft-combined-logs
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+  kafka-init:
+    image: apache/kafka:3.9.0
+    profiles: [streaming, orchestration]
+    user: "0:0"
+    entrypoint: [sh, -c, "chown -R 1000:1000 /tmp/kraft-combined-logs"]
+    volumes:
+      - kafka_data:/tmp/kraft-combined-logs
+    mem_limit: 64m
+  postgres:
+    restart: unless-stopped
+    image: postgres:16.6
+    profiles: [orchestration]
+    mem_limit: 512m
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/init_local_env.py}
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD, pg_isready, -U, airflow]
+      interval: 10s
+      retries: 10
+  airflow-init:
+    <<: *airflow
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - >-
+        airflow db migrate && (airflow users list | grep -q bigdata@local ||
+        airflow users create --username airflow --password "$$AIRFLOW_ADMIN_PASSWORD"
+        --firstname Big --lastname Data --role Admin --email bigdata@local)
+    mem_limit: 1g
+  airflow-webserver:
+    restart: unless-stopped
+    <<: *airflow
+    command: webserver
+    environment:
+      <<: *airflow-env
+      SPARK_LOCAL_IP: airflow-webserver
+    ports: ["127.0.0.1:8080:8080"]
+    mem_limit: 1g
+  airflow-scheduler:
+    restart: unless-stopped
+    <<: *airflow
+    command: scheduler
+    hostname: airflow-scheduler
+    mem_limit: 3g
+  replay-runner:
+    <<: *runtime
+    profiles: [dashboard, orchestration]
+    command: [python, /workspace/jobs/replay_months.py]
+    hostname: replay-runner
+    environment:
+      SPARK_LOCAL_IP: replay-runner
+    mem_limit: 2g
+    depends_on: [namenode, datanode, spark-master]
+  dashboard:
+    restart: unless-stopped
+    image: bigdata-review-runtime:local
+    profiles: [dashboard, orchestration]
+    command: [python, /workspace/dashboard/server.py, --host, 0.0.0.0, --port, "8090", --outputs, /exports, --cache, /cache, --replay-control, /replay-control]
+    volumes:
+      - .:/workspace:ro
+      - ./outputs:/exports:ro
+      - dashboard_cache:/cache
+      - ./outputs/replay:/replay-control
+    ports: ["127.0.0.1:8090:8090"]
+    mem_limit: 512m
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8090/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  namenode_data:
+  datanode_data:
+  kafka_data:
+  postgres_data:
+  airflow_logs:
+  dashboard_cache:

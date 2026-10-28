@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Quan sát phản hồi và các khía cạnh được nhắc trong đánh giá ứng dụng TMĐT Việt Nam.">
+  <title>ReviewLens · Quan sát trải nghiệm khách hàng</title>
+  <link rel="stylesheet" href="/styles.css"><script src="/replay.js" defer></script><script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#overview"><span class="brand-mark">R<span>●</span></span><span>ReviewLens<small>VIETNAM E-COMMERCE</small></span></a>
+    <div class="nav-label">KHÔNG GIAN PHÂN TÍCH</div>
+    <nav aria-label="Trang phân tích">
+      <button class="nav-item active" data-view="overview"><span>◫</span> Tổng quan</button>
+      <button class="nav-item" data-view="replay"><span>▷</span> Đồ thị nạp dần</button>
+      <button class="nav-item" data-view="aspects"><span>▥</span> Khía cạnh</button>
+      <button class="nav-item" data-view="reviews"><span>≡</span> Tra cứu phản hồi</button>
+      <button class="nav-item" data-view="pipeline"><span>⌁</span> Luồng dữ liệu</button>
+    </nav>
+    <div class="sidebar-source"><span class="source-dot"></span> <span id="source-mode">SNAPSHOT NGHIÊN CỨU</span><strong id="sidebar-count">—</strong><span>review sau làm sạch</span><hr><p>Google Play<br>Shopee · Lazada · Sendo · Tiki</p><small id="source-period">2013 — 08/2022</small></div>
+    <a href="/demo.html" class="text-button" style="display:block;padding:16px">Demo mô hình →</a><div class="sidebar-bottom">Đồ án Big Data<span>HDFS / Spark / Kafka / Airflow</span></div>
+  </aside>
+  <main>
+    <header class="topbar"><div class="breadcrumb">Nghiên cứu trải nghiệm <span>/</span> <b id="crumb">Tổng quan</b></div><div class="top-actions"><label class="source-choice">Nguồn <select id="data-source" aria-label="Nguồn dữ liệu"><option value="all">Toàn bộ dữ liệu</option><option value="live">Review mới thu thập</option><option value="historical">Dataset lịch sử</option></select></label><span class="snapshot-pill" id="snapshot-kind">Dữ liệu lịch sử</span><span class="auto-status" id="auto-update" role="status">Tự cập nhật · 10 giây</span></div></header>
+    <div class="page-heading"><div><div class="eyebrow">PHẢN HỒI KHÁCH HÀNG / VIỆT NAM</div><h1 id="page-title">Từ phản hồi đến ưu tiên cải thiện.</h1><p id="page-subtitle">Nhìn thấy xu hướng, tìm khía cạnh và đối chiếu bằng phản hồi thực tế.</p></div><div class="heading-actions"><button class="button ghost" id="print">In / Lưu PDF</button><button class="button primary" id="export-summary">↓ Xuất thống kê</button></div></div>
+    <form class="filterbar" id="filter-form">
+      <fieldset class="platform-filter"><legend>Nền tảng</legend><div id="platform-filters"></div></fieldset>
+      <label class="month-label">Từ tháng<input id="from-month" type="month" required></label>
+      <label class="month-label">Đến tháng<input id="to-month" type="month" required></label>
+      <label class="checkbox-label"><input type="checkbox" id="exclude-spam"> Loại ứng viên spam<small>Cờ theo luật, chưa phải nhãn chuẩn</small></label>
+      <button type="button" class="button ghost" id="clear-filters">Clear bộ lọc</button>
+    </form>
+    <div class="filter-caption" aria-live="polite"><span id="filter-summary">Đang tải kết quả từ Spark…</span><span id="snapshot-date"></span></div>
+    <p class="filter-help">Chọn bộ lọc để cập nhật tự động. Clear bộ lọc hoặc xóa tháng để xem toàn bộ dữ liệu lịch sử và review mới. Từ khóa được tìm sau khi em ngừng gõ.</p><p id="collection-status" class="collection-status hidden" aria-live="polite"></p>
+    <div id="error" class="error hidden" role="alert"></div><div id="loading" class="loading">Đang đọc snapshot đã kiểm chứng…</div>
+    <div id="content" class="hidden">
+      <section id="view-overview" class="view active">
+        <div class="kpi-grid" id="kpis"></div>
+        <div class="chart-grid"><article class="card wide-chart"><div class="card-head"><div><div class="eyebrow">BIẾN ĐỘNG THEO THỜI GIAN</div><h2>Đánh giá thấp thay đổi ra sao?</h2></div><div class="segmented" id="trend-mode"><button data-mode="rate" class="active">Tỷ lệ</button><button data-mode="volume">Số review</button></div></div><div class="chart-toolbar"><div class="legend" id="trend-legend"></div><select id="granularity" aria-label="Độ chi tiết biểu đồ thời gian"><option value="year">Theo năm</option><option value="month">Theo tháng</option></select></div><div class="chart" id="trend-chart"></div><div class="chart-note">Mỗi tỷ lệ dùng số review của cùng sàn và giai đoạn. Điểm ít review có thể biến động mạnh.</div><button class="text-button" data-goto="replay">Xem đồ thị nạp dần →</button> <button class="chart-export" data-chart="trend-chart">↓ Tải biểu đồ SVG</button></article>
+        <article class="card comparison-card"><div class="card-head"><div><div class="eyebrow">SO SÁNH TRONG SNAPSHOT</div><h2>Tỷ lệ đánh giá 1–2 sao</h2></div></div><div id="platform-comparison"></div><div class="chart-note">Khác biệt trong tập Google Play; không đại diện mức hài lòng của toàn bộ khách hàng.</div></article></div>
+        <div class="chart-grid bottom-grid"><article class="card"><div class="card-head"><div><div class="eyebrow">KHÍA CẠNH ĐƯỢC NHẮC</div><h2>Ưu tiên đối chiếu phản hồi</h2></div><button class="text-button" data-goto="aspects">Xem chi tiết →</button></div><div id="priority-list"></div><div class="chart-note">Thứ tự theo lượng đề cập trong review 1–2 sao, là đầu mối rà soát.</div></article>
+        <article class="card"><div class="card-head"><div><div class="eyebrow">PHÂN BỐ ĐÁNH GIÁ</div><h2>Bức tranh đủ năm mức sao</h2></div></div><div class="chart" id="rating-chart"></div><button class="chart-export" data-chart="rating-chart">↓ Tải biểu đồ SVG</button></article></div>
+        <div class="method-note"><span>ⓘ</span><p><b>Đọc đúng kết quả.</b> Sao thấp là tín hiệu thay thế cho không hài lòng. Một review có thể nhắc nhiều khía cạnh; đề cập một khía cạnh chưa xác nhận khía cạnh đó bị chê. <span id="method-source">Tập dữ liệu lịch sử kết thúc tháng 08/2022.</span></p></div>
+      </section>
+      <section id="view-replay" class="view">
+        <article class="card replay-card">
+          <div class="card-head"><div><div class="eyebrow" id="replay-kind">DEMO NẠP LẠI DỮ LIỆU LỊCH SỬ</div><h2 id="replay-title">Theo dõi từng tháng được nạp</h2></div><button class="button primary" id="replay-switch">Xem review mới thật →</button></div>
+          <div class="replay-progress"><div><strong id="replay-month">Đang chuẩn bị dữ liệu…</strong><p id="replay-count">Đang đọc tiến độ từ pipeline</p></div><span class="soft-badge" id="replay-phase" role="status">Đang chờ</span></div>
+          <div class="replay-track" id="replay-track" role="progressbar" aria-label="Tiến độ nạp dữ liệu lịch sử" aria-valuemin="0" aria-valuemax="100"><span id="replay-progress-fill"></span></div>
+          <div class="replay-toolbar"><div class="replay-platforms" id="replay-platforms" aria-label="Nền tảng trên đồ thị nạp dần"></div><label>Chỉ số <select id="replay-metric"><option value="rate">Tỷ lệ review 1–2 sao</option><option value="mean">Điểm trung bình</option></select></label></div>
+          <div class="replay-chart" id="replay-chart"></div>
+          <div class="replay-controls" id="replay-controls"><button class="button ghost" id="replay-pause">Tạm dừng</button><button class="button ghost" id="replay-reset">Nạp lại từ đầu</button><label>Tốc độ <select id="replay-speed"><option value="2">Nhanh · tối thiểu 2 giây/lô</option><option value="4" selected>Vừa · tối thiểu 4 giây/lô</option><option value="8">Chậm · tối thiểu 8 giây/lô</option></select></label></div>
+          <p class="chart-note" id="replay-note">Mỗi điểm là kết quả thật của một lô tháng đã nạp trên HDFS. Khung nhìn giữ tối đa 12 tháng, tự trượt khi có tháng mới. Trục tỷ lệ cố định 0–100%.</p>
+          <div class="replay-feedback hidden" id="replay-feedback" role="status"></div>
+        </article>
+      </section>
+      <section id="view-aspects" class="view"><div class="card"><div class="card-head"><div><div class="eyebrow">KHÍA CẠNH × NỀN TẢNG</div><h2>Nội dung nào thường được nhắc trong review sao thấp?</h2></div><span class="soft-badge">Nhận diện đề cập bằng luật</span></div><p class="section-help">Mỗi ô = số review 1–2 sao nhắc khía cạnh / tổng review 1–2 sao của sàn đang chọn. Bấm một ô để xem phản hồi.</p><div class="table-scroll" id="aspect-heatmap"></div></div>
+        <div class="chart-grid bottom-grid"><article class="card"><div class="card-head"><h2>Độ bao phủ của bộ khía cạnh</h2></div><div id="coverage-chart"></div><p class="chart-note">Phần chưa gán có thể là phản hồi chung hoặc bị luật bỏ sót; cần đọc mẫu độc lập để phân biệt.</p><button class="text-button" id="show-unmatched">Tra cứu review chưa gán →</button></article><article class="card"><div class="card-head"><h2>Cách chuyển kết quả thành việc rà soát</h2></div><div id="investigation-list"></div></article></div>
+        <div class="section-heading"><div><div class="eyebrow">KHÁM PHÁ BỔ SUNG BẰNG SPARK MLLIB</div><h2>Cụm nội dung K-Means</h2><p id="cluster-caption"></p></div><span class="soft-badge amber" id="silhouette-badge"></span></div><div id="cluster-grid" class="cluster-grid"></div>
+      </section>
+      <section id="view-reviews" class="view"><article class="card"><div class="card-head"><div><div class="eyebrow">BẰNG CHỨNG TỪ TOÀN BỘ DỮ LIỆU ĐÃ LÀM SẠCH</div><h2>Tìm phản hồi để đối chiếu giả thuyết</h2></div><button class="button ghost" id="export-reviews">↓ Xuất tối đa 5.000 review</button></div><form id="review-form" class="review-filters"><label class="search-label"><span>⌕</span><input id="review-query" type="search" placeholder="Tìm từ khóa, có hoặc không dấu…" maxlength="160" aria-label="Từ khóa phản hồi"></label><select id="review-platform" aria-label="Sàn trong phần tra cứu"><option value="all">Các sàn đang chọn</option></select><select id="review-score" aria-label="Số sao"><option value="low">1–2 sao</option><option value="all">Tất cả số sao</option><option value="1">1 sao</option><option value="2">2 sao</option><option value="3">3 sao</option><option value="4">4 sao</option><option value="5">5 sao</option></select><select id="review-aspect" aria-label="Khía cạnh trong phản hồi"><option value="all">Tất cả khía cạnh</option><option value="unmatched">Chưa gán khía cạnh</option></select></form><div class="review-summary" id="review-summary"></div><div id="review-results"></div><div class="pagination"><button class="button ghost" id="previous-page">← Trang trước</button><span id="page-label"></span><button class="button ghost" id="next-page">Trang sau →</button></div><div class="chart-note">Tìm kiếm khớp tất cả từ đã nhập, chấp nhận không dấu. Chỉ mục đọc toàn bộ review xuất từ Parquet HDFS. Bộ lọc riêng tại đây chỉ áp dụng cho danh sách phản hồi; số liệu biểu đồ lấy từ tổng hợp Spark. Tên và avatar người viết không được đưa vào chỉ mục.</div></article></section>
+      <section id="view-pipeline" class="view"><div class="pipeline-intro"><div><div class="eyebrow">TỪ RAW ĐẾN SẢN PHẨM</div><h2>Dashboard là lớp quan sát của pipeline Big Data.</h2><p>Spark thực hiện xử lý và tổng hợp phân tán. Giao diện đọc bảng nhỏ cùng chỉ mục phục vụ tra cứu.</p></div><span class="soft-badge" id="dag-badge"></span></div><div id="quality-flow" class="quality-flow"></div><div class="chart-grid bottom-grid"><article class="card"><div class="card-head"><h2 id="dag-heading">Điều phối bằng Airflow</h2><a class="text-button" href="http://localhost:8080" target="_blank" rel="noopener">Mở Airflow ↗</a></div><div id="dag-steps"></div><p class="chart-note">Trạng thái từ lần kiểm chứng đã lưu; không phải giám sát dịch vụ trực tiếp.</p></article><article class="card"><div class="card-head"><h2>Kafka và chống trùng</h2></div><div id="stream-stats" class="stream-stats"></div><div class="chart" id="stream-chart"></div><p class="chart-note" id="stream-note">Mỗi cột là số sự kiện mới trong microbatch.</p></article></div><article class="card"><div class="card-head"><h2>Vì sao Spark SQL chỉ đọc phần cần thiết?</h2><a class="text-button" href="http://localhost:8081" target="_blank" rel="noopener">Mở Spark master ↗</a></div><p class="section-help">Query Shopee năm 2022 dùng partition pruning và chỉ đọc cột month; Exchange thể hiện shuffle để GROUP BY.</p><pre id="query-plan"></pre></article></section>
+      <footer><span>ReviewLens · Đồ án Big Data</span><span>HDFS → Spark → Parquet → Kafka → Airflow → Dashboard</span><a href="https://www.kaggle.com/datasets/hienbm/vietnamese-ecommerce-review" target="_blank" rel="noopener">Nguồn dataset ↗</a></footer>
+    </div>
+  </main><div id="tooltip" class="tooltip hidden" role="tooltip"></div><div id="toast" class="toast hidden" role="status"></div>
+</body></html>

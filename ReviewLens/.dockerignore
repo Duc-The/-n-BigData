@@ -1,0 +1,12 @@
+.git
+.env
+.venv
+vietnamese_ecommerce_review.csv
+artifacts
+outputs
+reports
+submission
+__pycache__
+tmp
+output
+docs/templates
